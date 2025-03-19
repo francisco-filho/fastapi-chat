@@ -30,8 +30,9 @@ class ChatMessage(BaseModel):
     content: str
 
 
-@app.post("/chat")
-async def chat(message: ChatMessage):
+
+@app.post("/chat/{chat_id}")
+async def chat(chat_id: int, message: ChatMessage):
     history.append(message)
     completion = client.chat.completions.create(
         model=MODEL,
