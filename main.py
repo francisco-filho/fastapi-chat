@@ -1,12 +1,21 @@
 import os
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from openai import OpenAI
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
 load_dotenv()
 
+origins = ["http://localhost:4200"]
+
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_methods=['*']
+)
 
 MODEL="gpt-4o-mini"
 
@@ -22,11 +31,13 @@ class ChatMessage(BaseModel):
 
 
 @app.post("/chat")
-async def chat(msg: str):
-    message = ChatMessage(role="user", content=msg)
+async def chat(message: ChatMessage):
+    history.append(message)
     completion = client.chat.completions.create(
         model=MODEL,
-        messages=[message]
+        messages=history
     )
-    return completion.choices[0].message.content
+    response = completion.choices[0].message
+    history.append(response)
+    return ChatMessage(role="assistant", content=response.content)
 
