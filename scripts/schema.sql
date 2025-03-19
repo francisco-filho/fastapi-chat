@@ -9,6 +9,7 @@ create table if not exists chat (
 create table if not exists chat_messages (
 	id serial not null,
 	chat_id int,
+	model text,
 	role text,
 	content text,
 	created_at timestamp default now(),
