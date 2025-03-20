@@ -52,6 +52,13 @@ async def chat(chat_id: int, message: ChatMessage):
     persist_chat(chat_id, 'assistant', response.content)
     return ChatMessage(role="assistant", content=response.content)
 
+@app.post("/chat", status_code=201)
+def create_chat():
+    with psycopg.connect(f"host=localhost dbname=localchat user={DB_USER} password={DB_PASSWORD}") as conn:
+        with conn.cursor() as cur:
+            cur.execute("insert into chat (created_at) values (now())")
+
+
 @app.get("/chat")
 def list_chats():
     with psycopg.connect(f"host=localhost dbname=localchat user={DB_USER} password={DB_PASSWORD}") as conn:
