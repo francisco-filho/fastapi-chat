@@ -24,7 +24,6 @@ app.add_middleware(
 
 MODEL="gpt-4o-mini"
 
-history=[]
 
 client = OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY"),
@@ -38,17 +37,29 @@ class ChatMessage(BaseModel):
     role: str
     content: str
 
+app.history = []
+
+@app.get("/chat/{chat_id}")
+def load_chat(chat_id: int):
+    with psycopg.connect(f"host=localhost dbname=localchat user={DB_USER} password={DB_PASSWORD}") as conn:
+        with conn.cursor() as cur:
+            cur.execute("select c.role, c.content from chat_messages c where chat_id = %s", (chat_id, ))
+            app.history = ([ChatMessage(role=c[0], content=c[1]) for c in cur.fetchall()])
+            print('load_chats', app.history)
+            return app.history
+     
 
 @app.post("/chat/{chat_id}")
 async def chat(chat_id: int, message: ChatMessage):
-    history.append(message)
+    app.history.append(message)
     persist_chat(chat_id, message.role, message.content)
     completion = client.chat.completions.create(
         model=MODEL,
-        messages=history
+        messages=app.history
     )
     response = completion.choices[0].message
-    history.append(response)
+    app.history.append(ChatMessage(role=response.role, content=response.content))
+    print(app.history)
     persist_chat(chat_id, 'assistant', response.content)
     return ChatMessage(role="assistant", content=response.content)
 
