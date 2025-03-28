@@ -29,20 +29,24 @@ config = {
         'url': 'https://api.openai.com/v1',
         'api_key': os.environ.get("OPENAI_API_KEY"),
     },
+    'deepseek-r1:14b': {
+        'url': 'http://127.0.0.1:11434/v1',
+        'api_key': 'ollama',
+    },
+    'deepseek-r1:8b': {
+        'url': 'http://127.0.0.1:11434/v1',
+        'api_key': 'ollama',
+    },
     'deepseek-r1:7b': {
-        'url': 'https://127.0.0.1:11434/v1',
+        'url': 'http://127.0.0.1:11434/v1',
         'api_key': 'ollama',
     },
 }
 
 
-MODEL = 'gpt-4o-mini'
+MODEL = 'deepseek-r1:8b'
 
 
-client = OpenAI(
-    base_url=config[MODEL]['url'],
-    api_key=config[MODEL]['api_key']
-)
 
 class Chat(BaseModel):
     id: int
@@ -71,15 +75,18 @@ def load_chat(chat_id: int):
 
 @app.post("/chat/{chat_id}")
 def chat(chat_id: int, chat_message: ChatMessage):
-    global MODEL
-    global client
+    MODEL = chat_message.model
+#    global client
+    client = OpenAI(
+        base_url=config[MODEL]['url'],
+        api_key=config[MODEL]['api_key']
+    )
     if chat_message.model != MODEL:
         MODEL = chat_message.model
         client = OpenAI(
             base_url=config[MODEL]['url'],
             api_key=config[MODEL]['api_key']
         )
-
 
     message = chat_message.messages[0]
     app.history.append(message)
