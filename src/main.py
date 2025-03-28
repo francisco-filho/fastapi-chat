@@ -47,9 +47,12 @@ config = {
 MODEL = 'deepseek-r1:8b'
 
 
+class NewChat(BaseModel):
+    name: str
 
 class Chat(BaseModel):
     id: int
+    name: str
     created_at: datetime 
 
 class Message(BaseModel):
@@ -102,18 +105,18 @@ def chat(chat_id: int, chat_message: ChatMessage):
     return Message(role="assistant", content=response.content)
 
 @app.post("/chat", status_code=201)
-def create_chat():
+def create_chat(newChat: NewChat):
     with psycopg.connect(f"host=localhost dbname=localchat user={DB_USER} password={DB_PASSWORD}") as conn:
         with conn.cursor() as cur:
-            cur.execute("insert into chat (created_at) values (now())")
+            cur.execute("insert into chat (name, created_at) values (%s, now())", (newChat.name, ))
 
 
 @app.get("/chat")
 def list_chats():
     with psycopg.connect(f"host=localhost dbname=localchat user={DB_USER} password={DB_PASSWORD}") as conn:
         with conn.cursor() as cur:
-            cur.execute("select c.* from chat c")
-            return [Chat(id=c[0], created_at=c[1]) for c in cur.fetchall()]
+            cur.execute("select c.id, c.name, c.created_at from chat c")
+            return [Chat(id=c[0], name=c[1], created_at=c[2]) for c in cur.fetchall()]
 
 def persist_chat(chat_id: int, role: str, content: str, model: str = MODEL):
     with psycopg.connect(f"host=localhost dbname=localchat user={DB_USER} password={DB_PASSWORD}") as conn:
