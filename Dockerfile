@@ -1,4 +1,5 @@
-FROM python:3.11.11-bookworm
+FROM python:3.11-alpine3.21
+#FROM python:3.11.11-bookworm
 
 RUN mkdir /app
 WORKDIR /app
