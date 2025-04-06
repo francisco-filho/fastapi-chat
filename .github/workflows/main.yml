@@ -21,7 +21,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push image to Dockerhub
-        uses: docker/build-and-push@v6
+        uses: docker/build-push-action@v6
         with:
           push: true
           tags: franciscofilho/fastapi-chat:latest
