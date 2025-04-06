@@ -1,0 +1,16 @@
+name: localchat-api
+
+on:
+  workflow_dispatch:
+
+env:
+  tag: latest
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build docker image
+        id: build-image
+        run: echo 'Hello world'
+  
