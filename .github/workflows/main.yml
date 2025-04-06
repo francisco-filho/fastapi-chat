@@ -9,8 +9,20 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: development
     steps:
-      - name: Build docker image
-        id: build-image
-        run: echo 'Hello world'
+      - name: Checkout repository 
+        uses: actions/checkout@v4
+        
+      - name: Login into Dockerhub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push image to Dockerhub
+        uses: docker/build-and-push@v6
+        with:
+          push: true
+          tags: franciscofilho/fastapi-chat:latest
   
