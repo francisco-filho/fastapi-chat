@@ -1,6 +1,7 @@
 import os
 import psycopg
 from fastapi import FastAPI
+from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -74,7 +75,15 @@ def load_chat(chat_id: int):
             app.history = ([Message(role=c[0], content=c[1]) for c in cur.fetchall() if c[0] != 'string'])
             print('load_chats', app.history)
             return app.history
-     
+
+@app.delete("/chat/{chat_id}", status_code=204)
+def delete_chat(chat_id: int):
+    with psycopg.connect(f"host=localhost dbname=localchat user={DB_USER} password={DB_PASSWORD}") as conn:
+        with conn.cursor() as cur:
+            cur.execute("delete from chat_messages where chat_id = %s", (chat_id, ))
+            cur.execute("delete from chat where id = %s", (chat_id, ))
+    return Response(status_code=204)
+
 
 @app.post("/chat/{chat_id}")
 def chat(chat_id: int, chat_message: ChatMessage):
