@@ -1,7 +1,10 @@
 import os
+import json
 import psycopg
+import asyncio
+from time import sleep
 from fastapi import FastAPI
-from fastapi.responses import Response
+from fastapi.responses import Response, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -67,6 +70,12 @@ class ChatMessage(BaseModel):
 
 app.history = []
 
+def get_client(model: str):
+    return OpenAI(
+        base_url=config[model]['url'],
+        api_key=config[model]['api_key']
+    )
+
 @app.get("/chat/{chat_id}")
 def load_chat(chat_id: int):
     with psycopg.connect(f"host=localhost dbname=localchat user={DB_USER} password={DB_PASSWORD}") as conn:
@@ -87,18 +96,7 @@ def delete_chat(chat_id: int):
 
 @app.post("/chat/{chat_id}")
 def chat(chat_id: int, chat_message: ChatMessage):
-    MODEL = chat_message.model
-#    global client
-    client = OpenAI(
-        base_url=config[MODEL]['url'],
-        api_key=config[MODEL]['api_key']
-    )
-    if chat_message.model != MODEL:
-        MODEL = chat_message.model
-        client = OpenAI(
-            base_url=config[MODEL]['url'],
-            api_key=config[MODEL]['api_key']
-        )
+    client = get_client(chat_message.model)
 
     message = chat_message.messages[0]
     app.history.append(message)
@@ -109,15 +107,42 @@ def chat(chat_id: int, chat_message: ChatMessage):
     )
     response = completion.choices[0].message
     app.history.append(Message(role=response.role, content=response.content))
-    #print(app.history)
     persist_chat(chat_id, 'assistant', response.content, model=chat_message.model)
     return Message(role="assistant", content=response.content)
 
+
+@app.post("/stream/{chat_id}")
+async def stream(chat_id: int, chat_message: ChatMessage):
+    client = get_client(chat_message.model)
+    message = chat_message.messages[0]
+
+    app.history.append(message)
+    persist_chat(chat_id, message.role, message.content, model=chat_message.model)
+    completion = client.chat.completions.create(
+        model=chat_message.model,
+        messages=app.history,
+        stream=True
+    )
+
+    async def response_generator(comp):
+        response = ""
+        for chunk in comp:
+            delta = chunk.choices[0].delta
+            if delta and delta.content:
+                response += delta.content
+                yield delta.content
+            await asyncio.sleep(0.05)
+
+        persist_chat(chat_id, 'assistant', response, model=chat_message.model)
+
+    return StreamingResponse(response_generator(completion), media_type="text/event-stream")
+
+
 @app.post("/chat", status_code=201)
-def create_chat(newChat: NewChat):
+def create_chat(new_chat: NewChat):
     with psycopg.connect(f"host=localhost dbname=localchat user={DB_USER} password={DB_PASSWORD}") as conn:
         with conn.cursor() as cur:
-            cur.execute("insert into chat (name, created_at) values (%s, now())", (newChat.name, ))
+            cur.execute("insert into chat (name, created_at) values (%s, now())", (new_chat.name, ))
 
 
 @app.get("/chat")
