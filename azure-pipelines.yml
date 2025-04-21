@@ -25,6 +25,6 @@ jobs:
       inputs:
         feedUrl: 'https://pkgs.dev.azure.com/francisco0808/_packaging/mypypi/pypi/upload/'
         artifactFeed: 'mypypi'
-    - script: python -m twine upload --config-file $(PYPIRC_PATH) --repository-url https://pkgs.dev.azure.com/francisco0808/_packaging/mypypi/pypi/upload $(Build.ArtifactStagingDirectory)/*
+    - script: python -m twine upload --config-file $(PYPIRC_PATH) -r mypypi  $(Build.ArtifactStagingDirectory)/*
       displayName: Publish python package to Artifacts
     
