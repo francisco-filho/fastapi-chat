@@ -1,6 +1,6 @@
 [project]
 name = "fastapi_chat"
-version = "0.1.0"
+version = "0.1.1"
 description = "A backend to comunicate with LLMs"
 requires-python = ">=3.9"
 authors = [
