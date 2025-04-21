@@ -1,0 +1,24 @@
+[project]
+name = "fastapi_chat"
+version = "0.1.0"
+description = "A backend to comunicate with LLMs"
+requires-python = ">=3.9"
+authors = [
+	{name = "Francisco Filho", email = "francisco@capimgrosso.com"}
+]
+
+dependencies = [
+	"openai>=1.68.2",
+	"pydantic>=2.10",
+	"psycopg-binary>=3.2.6",
+	"toml"
+]
+
+[project.urls]
+Homepage = "https://github.com/francisco-filho/fastapi-chat"
+Issues = "https://github.com/francisco-filho/fastapi-chat"
+
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+

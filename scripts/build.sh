@@ -1,5 +1,6 @@
 #!/bin/bash
 
-echo "- Build image fastapi-chat"
+VERSION=$(python scripts/get_version.py)
+echo "- Build image fastapi-chat:$VERSION"
 
-docker build -t fastapi-chat .
+docker build -t fastapi-chat:$VERSION .

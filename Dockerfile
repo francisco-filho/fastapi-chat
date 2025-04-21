@@ -11,4 +11,4 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 EXPOSE 8000
 
-CMD ["fastapi", "run", "src/main.py"]
+CMD ["fastapi", "run", "src/fastapi_chat/main.py"]
