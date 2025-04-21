@@ -12,7 +12,7 @@ jobs:
         versionSpec: '3.11'
         addToPath: true
         architecture: 'x64'
-    - script: pip install -e requirements.txt
+    - script: pip install -r requirements.txt
       displayName: 'Installing dependencies'
     - script: python -m build --outdir $(Build.ArtifactStagingDirectory)
     - task: PublishBuildArtifacts@1
