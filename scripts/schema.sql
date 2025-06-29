@@ -1,7 +1,8 @@
-create database if not exists localchat;
+-- create database if not exists localchat;
 
 create table if not exists chat (
 	id serial not null,
+	name text,
 	created_at timestamp default now(),
 	primary key (id)
 );
